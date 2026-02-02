@@ -63,6 +63,13 @@
                     value={value}
                     onChange={onChange}
                     onBlur={onBlur}
+                    onFocus={(e) => {
+                        // 當獲得焦點時，將該元素捲動到畫面中央，避免被底部總結欄遮擋
+                        // 使用 setTimeout 確保瀏覽器預設行為執行後再進行修正
+                        setTimeout(() => {
+                            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                    }}
                     placeholder={placeholder}
                     className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-shadow bg-white text-gray-900 placeholder-gray-400"
                 />
