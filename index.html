@@ -50,6 +50,10 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="m6 9 6 6 6-6"/></svg>
         );
 
+        const TrashIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        );
+
         // --- 子組件 (移到外部以修復 focus 問題) ---
         const TimeInput = ({ value, onChange, onBlur, placeholder }) => (
             <div className="relative w-full">
@@ -154,6 +158,27 @@
                 }
                 setIsLoaded(true);
             }, [year, month]);
+
+            // 清除資料功能
+            const handleClearAll = () => {
+                if (window.confirm("確定要清除所有資料嗎？\n這將會刪除目前已輸入的工時紀錄，方便您計算下一位員工。")) {
+                    setWorkData({}); // 清空資料
+                    // 由於 useEffect 依賴 [year, month]，清空後它會在下次 render 時根據目前年月自動補回空白的格子
+                    // 但為了即時反應，我們可以在這裡直接重置為當前月份的空白狀態
+                    const daysInMonth = new Date(year, month, 0).getDate();
+                    const resetData = {};
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                        const dayOfWeek = new Date(year, month - 1, d).getDay();
+                        const isDefaultHoliday = dayOfWeek === 0 || dayOfWeek === 6;
+                        resetData[dateStr] = {
+                            isHoliday: isDefaultHoliday,
+                            shifts: [{ start: '', end: '' }, { start: '', end: '' }]
+                        };
+                    }
+                    setWorkData(resetData);
+                }
+            };
 
             const calculateHours = (start, end) => {
                 if (!start || !end || !start.includes(':') || !end.includes(':')) return 0;
@@ -365,9 +390,14 @@
                                     <CalculatorIcon />
                                     薪資小幫手
                                 </h1>
-                                <button onClick={() => setShowRateSettings(!showRateSettings)} className="text-sm px-3 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors">
-                                    {showRateSettings ? '關閉設定' : '費率設定'}
-                                </button>
+                                <div className="flex gap-2">
+                                    <button onClick={handleClearAll} className="text-sm px-3 py-1 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors flex items-center gap-1 border border-red-200">
+                                        <TrashIcon /> 清除
+                                    </button>
+                                    <button onClick={() => setShowRateSettings(!showRateSettings)} className="text-sm px-3 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors border border-blue-200">
+                                        {showRateSettings ? '關閉設定' : '費率設定'}
+                                    </button>
+                                </div>
                             </div>
 
                             {showRateSettings && (
